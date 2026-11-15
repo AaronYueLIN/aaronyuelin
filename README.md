@@ -40,7 +40,7 @@ You do not need `npm install`. `package.json` pins the Three.js and Rapier versi
 
 ## License
 
-Source code is under the [MIT License](LICENSE), copyright 2026 Yuet LAM. Third-party code keeps its own licenses in `public/vendor/`. Models, textures, and other artwork from the live site are not licensed here; they remain reserved.
+Source code is under the [MIT License](LICENSE), copyright 2026 YUE LIN. Third-party code keeps its own licenses in `public/vendor/`. Models, textures, and other artwork from the live site are not licensed here; they remain reserved.
 
 ---
 
@@ -86,4 +86,4 @@ python3 -m http.server 4173 --directory public
 
 ## 许可证
 
-源代码采用 [MIT 许可证](LICENSE)，版权所有 2026 Yuet LAM。第三方代码的许可证在 `public/vendor/`。线上网站的模型、贴图和其他美术资源不在本仓库授权范围内，保留所有权利。
+源代码采用 [MIT 许可证](LICENSE)，版权所有 2026 YUE LIN。第三方代码的许可证在 `public/vendor/`。线上网站的模型、贴图和其他美术资源不在本仓库授权范围内，保留所有权利。
