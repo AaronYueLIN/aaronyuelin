@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Aaron — Football</title>
+  <meta name="description" content="A leather football in a white room, with a black full-wall goal of five by two square openings.">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+  <link rel="canonical" href="https://aaronyuelin.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Aaron">
+  <meta property="og:description" content="A white room, one football, and ten destinations behind the goal.">
+  <meta property="og:url" content="https://aaronyuelin.com/">
+  <script type="application/json" id="texture-manifest">{"version":2,"policy":{"dprCap":2,"targetSide":4096,"runtimeMaxSide":2048,"minSide":256,"tiers":["4k","2k","base"]},"tiers":{"football":{"4k":"/assets/glb/football.4k.b022e4b93a8701be.glb","2k":"/assets/glb/football.2k.f1c81dd2887afb1d.glb"},"room-goal":{"4k":"/assets/glb/room-goal.4k.3988b0da4c17eaf0.glb","2k":"/assets/glb/room-goal.2k.8185598121a749cf.glb"}},"bytes":{"football:4k":69412728,"football:2k":40270300,"room-goal:4k":33070672,"room-goal:2k":10868080}}</script>
+</head>
+<body>
+  <!--
+    A text-free white room. Everything that names or explains lives in
+    visually hidden text; the only pixels the visitor sees are the ball, its
+    shadow, the black goal lattice and the green/red opening state.
+  -->
+  <main id="main">
+    <h1 class="visually-hidden">Football</h1>
+
+    <div class="play" id="play" data-play data-state="idle" data-mode="loading" data-renderer="loading">
+      <!-- The playable surface: one canvas (room: ball, real shadow, real goal
+           lattice) and the DOM goal laid exactly over the projected lattice. -->
+      <section class="room" aria-label="Football pitch" data-room>
+        <div class="scene" data-scene>
+          <canvas class="scene__canvas" data-canvas aria-hidden="true" role="presentation"></canvas>
+        </div>
+
+        <div class="goal" data-goal role="img" aria-labelledby="goal-name">
+          <span id="goal-name" class="visually-hidden">Goal: two rows of five equal square openings, nine black bars.</span>
+          <div class="goal__grid" data-grid>
+            <!-- Visual order is top row first; the stable cell index is
+                 row 0 = bottom, so data-cell 5..9 precede 0..4 here. -->
+            <div class="cell" data-cell="5"></div>
+            <div class="cell" data-cell="6"></div>
+            <div class="cell" data-cell="7"></div>
+            <div class="cell" data-cell="8"></div>
+            <div class="cell" data-cell="9"></div>
+            <div class="cell" data-cell="0"></div>
+            <div class="cell" data-cell="1"></div>
+            <div class="cell" data-cell="2"></div>
+            <div class="cell" data-cell="3"></div>
+            <div class="cell" data-cell="4"></div>
+          </div>
+        </div>
+
+        <button class="handle" type="button" data-ball hidden
+                aria-label="Football. Press and hold to charge, move toward a goal opening, then release to shoot. Keyboard: hold Space or Enter, aim with the arrow keys, release to shoot. R resets."
+                aria-describedby="how-to-play"></button>
+      </section>
+
+      <p id="how-to-play" class="visually-hidden">
+        Press and hold the football to charge. While holding, move toward one of
+        the ten goal openings to set the shot direction, then release to shoot.
+        The ball is judged only by its real path. On a keyboard: focus the
+        football, hold Space or Enter to charge, use the arrow keys to aim
+        (Shift for fine aim), release to shoot, and press R to reset.
+      </p>
+
+      <p class="status" data-status role="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
+
+    <noscript>
+      <p class="visually-hidden">The football needs JavaScript. The link at the top opens a destination.</p>
+    </noscript>
+  </main>
+</body>
+</html>

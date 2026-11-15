@@ -1,0 +1,21 @@
+node_modules/
+package-lock.json.bak
+
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Local models and textures. This repo ships architecture only.
+public/assets/glb/*.glb
+public/assets/glb/*.gltf
+public/assets/*.png
+public/assets/*.jpg
+public/assets/*.jpeg
+public/assets/*.ktx2
+public/assets/*.bin

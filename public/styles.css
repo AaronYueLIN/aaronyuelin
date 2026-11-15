@@ -1,0 +1,207 @@
+/*
+ * Text-free white room.
+ *
+ *   .room       the playable surface (positioned inside .play)
+ *   .scene      one transparent canvas: the Blender room, the full-wall 2x5
+ *               goal and its real 3D light bars, plus the ball and shadow
+ *   .goal       invisible measuring/accessibility copy of the goal projection
+ *   .handle     invisible focusable button on the ball: all pointer input
+ *
+ * CSS owns only the shell: fixed viewport, a promoted canvas layer, and the
+ * projected positions of the invisible input/measurement elements. It never
+ * paints the ball, room, goal or lights.
+ */
+
+:root {
+  --paper: #ffffff;
+  --ink: #000000;
+  --ink-quiet: #a3a39f;
+  --goal-x: 0px;
+  --goal-y: 0px;
+  --goal-w: 320px;
+  --goal-h: 140px;
+  --bar-w: 3px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  min-height: 100dvh;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 15px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ----------------------------------------------------------------- play */
+
+main {
+  position: fixed;
+  inset: 0;
+}
+
+.play {
+  position: absolute;
+  inset: 0;
+}
+
+/* The room fills the viewport: the canvas layer is fixed to the screen, so
+   the WebGL scene never depends on document flow and cannot cause reflow. */
+.room {
+  position: absolute;
+  inset: 0;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  contain: layout paint style;
+  transform: translate3d(0, 0, 0);
+}
+
+/* The WebGL surface is a promoted compositor layer with a stable CSS size.
+   Three.js owns the drawing buffer size and DPR; CSS never scales a stale
+   buffer or participates in the scene's motion. */
+.scene__canvas {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  touch-action: none;
+  will-change: transform;
+}
+
+/* The ball is either the textured Blender GLB or absent. Never a stand-in. */
+.play[data-ball="loading"] .handle,
+.play[data-ball="error"] .handle {
+  display: none;
+}
+
+/* ----------------------------------------------------------------- goal */
+
+/* Measuring + accessibility layer only. The visible 2x5 black lattice and its
+   3D light bars come from assets/room-goal.glb; this DOM copy is transparent
+   so it can never double-draw or cover the Blender goal. Its box, bar width
+   and cell rectangles still drive layout and the screen-reader description. */
+.goal {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  inline-size: var(--goal-w);
+  block-size: var(--goal-h);
+  padding: var(--bar-w);
+  background: var(--ink);
+  opacity: 0;
+  transform: translate3d(var(--goal-x), var(--goal-y), 0);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.goal__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: var(--bar-w);
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.cell {
+  position: relative;
+  min-inline-size: 0;
+  min-block-size: 0;
+  aspect-ratio: 1;
+  place-self: center;
+  inline-size: 100%;
+  background: var(--paper);
+}
+
+/* --------------------------------------------------------------- handle */
+
+/* Invisible button over the projected ball; all pointer input lands here.
+   It follows the real resting ball, so a settled ball can be shot again from
+   where it stopped. */
+.handle {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  inline-size: var(--ball-size, 150px);
+  block-size: var(--ball-size, 150px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate3d(var(--ball-x, 50%), var(--ball-y, 70%), 0) translate(-50%, -50%);
+  will-change: transform;
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.handle:active {
+  cursor: grabbing;
+}
+.handle[hidden] {
+  display: none;
+}
+
+.status {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------ preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  .scene__canvas,
+  .handle,
+  .goal {
+    will-change: auto;
+  }
+}
+
