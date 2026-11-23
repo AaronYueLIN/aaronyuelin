@@ -1,0 +1,18 @@
+License scope
+
+/LICENSE.txt reproduces the MIT License of AaronYueLIN/aaronyuelin,
+Copyright (c) 2026 YUE LIN. It applies to the original project source code
+and associated project documentation covered by that license.
+
+It does not grant new rights to third-party libraries, fonts, textures,
+models, media, trademarks, or visitor/editor content. Those items retain
+their respective copyright, license terms, and permissions. Uploading or
+displaying material on this website is not a blanket MIT license grant.
+
+Existing bundled third-party notices remain available, including:
+/vendor/THREE-LICENSE.txt
+/vendor/rapier/LICENSE
+/assets/licenses/octicons-MIT.txt
+
+The absence of a separate asset notice does not establish permission to
+reuse that asset. Consult its owner or original source.

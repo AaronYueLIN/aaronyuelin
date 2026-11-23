@@ -2,20 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <link rel="license" href="/LICENSE.txt" type="text/plain" title="MIT License for original project source code">
+  <link rel="describedby" href="/LICENSE-SCOPE.txt" type="text/plain" title="License scope and third-party rights">
+  <meta name="release-version" content="2026.11.23-r11">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Aaron — Football</title>
+  <title>Home</title>
   <meta name="description" content="A leather football in a white room, with a black full-wall goal of five by two square openings.">
   <meta name="theme-color" content="#ffffff">
   <meta name="color-scheme" content="light">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="app.js"></script>
+  <link rel="stylesheet" href="styles.css?v=2026.11.23-r11">
+  <script type="module" src="homepage-gate.js?v=2026.11.23-r10"></script>
   <link rel="canonical" href="https://aaronyuelin.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Aaron">
   <meta property="og:description" content="A white room, one football, and ten destinations behind the goal.">
+  <meta property="og:image" content="https://aaronyuelin.com/assets/room.jpg">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="A leather football resting in a white room in front of a black five by two goal.">
+  <meta name="twitter:card" content="summary_large_image">
   <meta property="og:url" content="https://aaronyuelin.com/">
-  <script type="application/json" id="texture-manifest">{"version":2,"policy":{"dprCap":2,"targetSide":4096,"runtimeMaxSide":2048,"minSide":256,"tiers":["4k","2k","base"]},"tiers":{"football":{"4k":"/assets/glb/football.4k.b022e4b93a8701be.glb","2k":"/assets/glb/football.2k.f1c81dd2887afb1d.glb"},"room-goal":{"4k":"/assets/glb/room-goal.4k.3988b0da4c17eaf0.glb","2k":"/assets/glb/room-goal.2k.8185598121a749cf.glb"}},"bytes":{"football:4k":69412728,"football:2k":40270300,"room-goal:4k":33070672,"room-goal:2k":10868080}}</script>
+  <script type="application/json" id="texture-manifest">{"version":2,"policy":{"dprCap":2,"targetSide":4096,"runtimeMaxSide":2048,"minSide":256,"tiers":["4k","2k","base"]},"tiers":{"football":{"4k":"/assets/glb/football.4k.b022e4b93a8701be.glb","2k":"/assets/glb/football.2k.f1c81dd2887afb1d.glb"},"room-goal":{"4k":"/assets/glb/room-goal.4k.3988b0da4c17eaf0.glb","2k":"/assets/glb/room-goal.2k.8185598121a749cf.glb"}},"bytes":{"football:4k":69412728,"football:2k":40270300,"room-goal:4k":33070672,"room-goal:2k":10868080},"transport":{"football.4k.b022e4b93a8701be.glb":{"bytes":69412728,"raw":[{"url":"/assets/glb/football.4k.b022e4b93a8701be.glb.part00","bytes":25165824,"decodedBytes":25165824},{"url":"/assets/glb/football.4k.b022e4b93a8701be.glb.part01","bytes":25165824,"decodedBytes":25165824},{"url":"/assets/glb/football.4k.b022e4b93a8701be.glb.part02","bytes":19081080,"decodedBytes":19081080}],"gzip":[{"url":"/assets/glb/transport/6909e826d66defb50ca7f0f5cee7ba360406ef2da303344c31359aa0280aa395.bin","bytes":14921142,"decodedBytes":25165824},{"url":"/assets/glb/transport/3c69564c29223c41870a0316317f9a41a8db390211f9a0b1c0481a3ee8dc57d3.bin","bytes":22800187,"decodedBytes":25165824},{"url":"/assets/glb/transport/41ae8457b0124c7c87d07d69a2452c4d1cae504f0e2d6fe2489a9ae8954642f9.bin","bytes":18255171,"decodedBytes":19081080}]},"football.2k.f1c81dd2887afb1d.glb":{"bytes":40270300,"raw":[{"url":"/assets/glb/football.2k.f1c81dd2887afb1d.glb.part00","bytes":25165824,"decodedBytes":25165824},{"url":"/assets/glb/football.2k.f1c81dd2887afb1d.glb.part01","bytes":15104476,"decodedBytes":15104476}],"gzip":[{"url":"/assets/glb/transport/6366107f6c81c310977b6a3d9302f8de53808e58d08709c30633ced3d51e727a.bin","bytes":14921128,"decodedBytes":25165824},{"url":"/assets/glb/transport/ceabd7a0b32566a7a8cedddd4ea5105163fca452144f8d894147954e9a3a9735.bin","bytes":12023513,"decodedBytes":15104476}]},"room-goal.4k.3988b0da4c17eaf0.glb":{"bytes":33070672,"raw":[{"url":"/assets/glb/room-goal.4k.3988b0da4c17eaf0.glb.part00","bytes":25165824,"decodedBytes":25165824},{"url":"/assets/glb/room-goal.4k.3988b0da4c17eaf0.glb.part01","bytes":7904848,"decodedBytes":7904848}]},"room-goal.2k.8185598121a749cf.glb":{"bytes":10868080,"raw":[{"url":"/assets/glb/room-goal.2k.8185598121a749cf.glb","bytes":10868080,"decodedBytes":10868080}]}}}</script>
 </head>
 <body>
   <!--
@@ -24,6 +32,17 @@
     shadow, the black goal lattice and the green/red opening state.
   -->
   <main id="main">
+    <section class="desktop-letter" data-desktop-letter aria-label="A note for desktop visitors">
+      <div class="desktop-letter__body">
+        <p>Dear Visitors,</p>
+        <p>The desktop version isn’t ready just yet. Please visit on your mobile browser for a better experience. Thank you for your understanding.</p>
+        <p>Wish you a lovely day</p>
+        <p>Aaron</p>
+      </div>
+    </section>
+    <div class="mobile-home" data-mobile-home hidden>
+    <a class="license-link" href="/LICENSE.txt" rel="license" type="text/plain" aria-describedby="license-scope">MIT License</a>
+    <span id="license-scope" class="visually-hidden">MIT covers the original project source code, not all website assets or content. Third-party rights remain unchanged. Details: /LICENSE-SCOPE.txt.</span>
     <h1 class="visually-hidden">Football</h1>
 
     <div class="play" id="play" data-play data-state="idle" data-mode="loading" data-renderer="loading">
@@ -52,6 +71,13 @@
           </div>
         </div>
 
+        <p class="sim-xg" data-sim-xg data-label="XG" role="status" aria-live="polite" aria-atomic="true" title="Simulated goal probability: Loading…">
+          <img class="scoreboard__bezel" data-mobile-src="/assets/scoreboard/d56dff7a0d5b7f66b3d0d0f0d4c452618242b07830da8e0708ef24c65cf97754.webp" width="640" height="224" alt="" aria-hidden="true" decoding="async">
+          <span class="scoreboard__label" data-scoreboard-label aria-hidden="true"><span class="scoreboard__slot" data-slot="0"><svg viewBox="0 0 5 7" aria-hidden="true" focusable="false"><circle cx="0.5" cy="0.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="0.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="1.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="1.5" r="0.32" fill="currentColor"/><circle cx="1.5" cy="2.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="2.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="1.5" cy="4.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="4.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="5.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="5.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="6.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="6.5" r="0.32" fill="currentColor"/></svg></span><span class="scoreboard__slot" data-slot="1"><svg viewBox="0 0 5 7" aria-hidden="true" focusable="false"><circle cx="1.5" cy="0.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="0.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="0.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="1.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="1.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="2.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="4.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="4.5" r="0.32" fill="currentColor"/><circle cx="0.5" cy="5.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="5.5" r="0.32" fill="currentColor"/><circle cx="1.5" cy="6.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="6.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="6.5" r="0.32" fill="currentColor"/></svg></span></span>
+          <span class="scoreboard__number" data-sim-xg-value data-value="--" aria-hidden="true"><span class="scoreboard__slot" data-slot="2"><svg viewBox="0 0 5 7" aria-hidden="true" focusable="false"><circle cx="0.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="1.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="3.5" r="0.32" fill="currentColor"/></svg></span><span class="scoreboard__slot" data-slot="3"><svg viewBox="0 0 5 7" aria-hidden="true" focusable="false"><circle cx="0.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="1.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="2.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="3.5" cy="3.5" r="0.32" fill="currentColor"/><circle cx="4.5" cy="3.5" r="0.32" fill="currentColor"/></svg></span></span>
+          <span class="sim-xg__sr visually-hidden" data-sim-xg-sr>Simulated goal probability is loading. Four LED positions: X G and probability. Hold the football to aim when ready; release to freeze the shot estimate. Monte Carlo physics estimate without a goalkeeper, not match-statistics xG.</span>
+        </p>
+
         <button class="handle" type="button" data-ball hidden
                 aria-label="Football. Press and hold to charge, move toward a goal opening, then release to shoot. Keyboard: hold Space or Enter, aim with the arrow keys, release to shoot. R resets."
                 aria-describedby="how-to-play"></button>
@@ -71,6 +97,26 @@
     <noscript>
       <p class="visually-hidden">The football needs JavaScript. The link at the top opens a destination.</p>
     </noscript>
+  <!-- GitHub mark: @primer/octicons 19.42.0, GitHub Inc.; MIT notice in
+       /assets/licenses/octicons-MIT.txt. Authentic mark path retained unchanged. -->
+  <button class="replay-guide" type="button" data-guide-replay disabled
+          aria-label="Replay the goal-frame light show" title="Light show is loading">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+         aria-hidden="true" focusable="false" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/>
+      <path d="M21 3v5h-5"/>
+    </svg>
+  </button>
+  <a class="repo-link" href="https://github.com/AaronYueLIN/aaronyuelin"
+     target="_blank" rel="noopener noreferrer"
+     aria-label="View this website’s source on GitHub (opens in a new tab)">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 16 16"
+         aria-hidden="true" focusable="false" fill="currentColor">
+      <path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/>
+    </svg>
+  </a>
+    </div>
   </main>
 </body>
 </html>

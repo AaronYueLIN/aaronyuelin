@@ -1,13 +1,72 @@
 /*
+  X-Release-Version: 2026.11.23-r11
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' blob:; font-src 'self'; worker-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' blob:; font-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Cache-Control: public, max-age=0, must-revalidate
+
+# Fonts keep stable names; a replaced .woff2 must not be locked for a year.
+/assets/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /assets/glb/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
   Content-Type: model/gltf-binary
+  X-Content-Type-Options: nosniff
+
+/assets/textures/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Never long-cache an unhashed GLB. The build writes content-addressed files
+# under /assets/glb/ instead; this rule is the safety net for stale names.
+/assets/*.glb
+  ! Cache-Control
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: model/gltf-binary
+  X-Content-Type-Options: nosniff
+
+/thumbs/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Application-level gzip transport; not an HTTP Content-Encoding response.
+/assets/glb/transport/*
+  ! Content-Type
+  Content-Type: application/octet-stream
+
+# Entry documents must validate; all changed module edges carry the release ID.
+/
+  ! Cache-Control
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  Link: </LICENSE.txt>; rel="license"; type="text/plain"; title="Original project source code", </LICENSE-SCOPE.txt>; rel="describedby"; type="text/plain"
+
+/index.html
+  ! Cache-Control
+  Cache-Control: no-cache, max-age=0, must-revalidate
+  Link: </LICENSE.txt>; rel="license"; type="text/plain"; title="Original project source code", </LICENSE-SCOPE.txt>; rel="describedby"; type="text/plain"
+
+/release.json
+  ! Cache-Control
+  Cache-Control: no-store
+
+# Content-addressed Blender scoreboard bezel; no mutable-name caching.
+/assets/scoreboard/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+# Public static plaintext notices; no application authentication route.
+/LICENSE.txt
+  ! Content-Type
+  Content-Type: text/plain; charset=utf-8
+  X-Content-Type-Options: nosniff
+
+/LICENSE-SCOPE.txt
+  ! Content-Type
+  Content-Type: text/plain; charset=utf-8
   X-Content-Type-Options: nosniff

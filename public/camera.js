@@ -23,7 +23,7 @@ import {
   GOAL_HEIGHT,
   GOAL_WIDTH,
   ROOM,
-} from './config.js';
+} from './config.js?v=2026.11.23-r10';
 
 const DEG = Math.PI / 180;
 

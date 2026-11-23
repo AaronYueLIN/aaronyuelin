@@ -36,6 +36,8 @@ const types = {
   '.gltf': 'model/gltf+json',
   '.woff2': 'font/woff2',
   '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
+  '.bin': 'application/octet-stream',
 };
 
 async function resolveFile(urlPath) {

@@ -205,3 +205,185 @@ main {
   }
 }
 
+/* One Blender-bezel scoreboard only. Its own nonzero geometry is independent
+   of the sibling goal CSS variables. Goal layout writes these variables here. */
+.sim-xg {
+  display: block;
+  position: fixed;
+  z-index: 4;
+  inset-inline-start: var(--scoreboard-left, 50vw);
+  inset-block-start: var(--scoreboard-top, 30.5vh);
+  transform: translate(-50%, -50%);
+  inline-size: var(--scoreboard-width, clamp(147.2px, 51.52vw, 239.2px));
+  aspect-ratio: 640 / 224;
+  block-size: auto;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  color: #ffc15a;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.scoreboard__bezel {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.scoreboard__label, .scoreboard__number {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+/* Actual Blender window coordinates, normalized to the complete640x224 image.
+   Each glyph is centered within its OWN inset/clipped well, never a shared grid. */
+.scoreboard__slot {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inset-block-start: 50%;
+  inline-size: 18%;
+  block-size: 66%;
+  transform: translate(-50%, -50%);
+  gap: 4%;
+  overflow: hidden;
+}
+.scoreboard__slot[data-slot="0"] { inset-inline-start: 18.5%; }
+.scoreboard__slot[data-slot="1"] { inset-inline-start: 39.5%; }
+.scoreboard__slot[data-slot="2"] { inset-inline-start: 60.5%; }
+.scoreboard__slot[data-slot="3"] { inset-inline-start: 81.5%; }
+.scoreboard__slot svg {
+  display: block;
+  flex: 0 0 auto;
+  inline-size: 64%;
+  block-size: 66%;
+  overflow: hidden;
+  filter: none;
+}
+/*100 stays genuine: compact10 in well3 and0 in well4, no frame/layout resize. */
+.scoreboard__slot[data-compact="true"] svg {
+  inline-size: 36%;
+  block-size: 46%;
+}
+
+/* Requested GitHub repository mark: only this compact 44px target is clickable.
+   No full-screen header/backdrop, no runtime asset fetch, no game layout change. */
+.repo-link,
+.replay-guide {
+  position: fixed;
+  inset-block-start: calc(12px + env(safe-area-inset-top, 0px));
+  inset-inline-end: calc(12px + env(safe-area-inset-right, 0px));
+  /* Below the existing ball handle (3) and mobile probability layer (2). */
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin: 0;
+  padding: 10px;
+  color: #b8b8b8;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+.repo-link svg,
+.replay-guide svg {
+  display: block;
+  inline-size: 24px;
+  block-size: 24px;
+  pointer-events: none;
+}
+
+.repo-link:focus-visible,
+.replay-guide:focus-visible {
+  /* Keyboard focus changes only the mark itself: never a surrounding frame. */
+  outline: none;
+  color: #595959;
+}
+
+.replay-guide {
+  appearance: none;
+  inset-inline-start: calc(12px + env(safe-area-inset-left, 0px));
+  inset-inline-end: auto;
+  cursor: pointer;
+}
+
+.replay-guide:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Short landscape screens have a narrow blank band above the goal. Keep the
+   visual mark at the safe top edge, while retaining its 44px keyboard/touch box. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .repo-link,
+  .replay-guide {
+    inset-block-start: calc(2px + env(safe-area-inset-top, 0px));
+    align-items: start;
+    padding: 0 12px;
+  }
+  .repo-link svg,
+  .replay-guide svg {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+}
+
+/* Homepage-only desktop letter. Hidden mobile DOM never initializes on desktop. */
+.desktop-letter[hidden], .mobile-home[hidden] { display: none !important; }
+.mobile-home { position: absolute; inset: 0; }
+.desktop-letter {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-items: safe center;
+  padding: clamp(24px, 6vw, 72px);
+  overflow: auto;
+  background: #ffffff;
+  color: #383838;
+}
+.desktop-letter__body {
+  inline-size: min(100%, 42ch);
+  font: 400 clamp(17px, 1.5vw, 21px)/1.65 Georgia, 'Times New Roman', serif;
+  text-align: left;
+}
+.desktop-letter__body p { margin: 0 0 1.25em; }
+.desktop-letter__body p:last-child { margin-block-end: 0; }
+
+/* Static semantic license link; mobile-home already uses device/platform gating. */
+.license-link {
+  position: fixed;
+  inset-inline-start: 50%;
+  inset-block-end: env(safe-area-inset-bottom, 0px);
+  transform: translateX(-50%);
+  z-index: 4;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 88px;
+  min-height: 44px;
+  padding: 0 12px 3px;
+  color: #666;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+.license-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}

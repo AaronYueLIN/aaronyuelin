@@ -14,8 +14,8 @@
  * decoded, so this module never animates an untextured stand-in.
  */
 
-import * as THREE from './three.js';
-import { BALL_RADIUS } from './config.js';
+import * as THREE from './three.js?v=2026.11.23-r10';
+import { BALL_RADIUS } from './config.js?v=2026.11.23-r10';
 
 /** A three-quarter rest pose so the leather reads from the camera. */
 const REST = new THREE.Euler(0.18, -0.5, 0.06, 'XYZ');

@@ -16,13 +16,15 @@
  * once per trajectory.
  */
 
-import { createScene, supportsWebGL2 } from './scene.js';
-import { createBall } from './ball.js';
-import { createInteraction } from './interaction.js';
-import { createWorld, initRapier, H, BALL_RADIUS, GOAL, ROOM, openingRect } from './physics-rapier.js';
-import { CHILD_ROUTE, RESTING, SHOT } from './config.js';
-import { defaultAimPoint, launchFromAim } from './shot.js';
-import { afterFirstPaint } from './texture-infra.js';
+import { createScene, supportsWebGL2 } from './scene.js?v=2026.11.23-r10';
+import { createBall } from './ball.js?v=2026.11.23-r10';
+import { createInteraction } from './interaction.js?v=2026.11.23-r10';
+import { createWorld, initRapier, H, BALL_RADIUS, GOAL, ROOM, openingRect } from './physics-rapier.js?v=2026.11.23-r10';
+import { CHILD_ROUTE, RESTING, SHOT } from './config.js?v=2026.11.23-r10';
+import { defaultAimPoint, launchFromAim } from './shot.js?v=2026.11.23-r10';
+import { afterFirstPaint } from './texture-infra.js?v=2026.11.23-r10';
+import { createSimXgClient, renderScoreboardGlyphs } from './sim-xg-client.js?v=2026.11.23-r10';
+import { isPhoneViewport } from './sim-xg.js?v=2026.11.23-r10';
 
 const play = document.querySelector('[data-play]');
 const host = play?.querySelector('[data-scene]');
@@ -33,6 +35,9 @@ const cells = play
   ? [...play.querySelectorAll('[data-cell]')].sort((a, b) => Number(a.dataset.cell) - Number(b.dataset.cell))
   : [];
 const statusEl = play?.querySelector('[data-status]');
+const replayButton = document.querySelector('[data-guide-replay]');
+const scoreboardEl = play?.querySelector('[data-sim-xg]');
+const replayControl = window.__homepageReplay ??= { serial: 0, pending: false, navigating: false, run: null };
 
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const reduceMotion = () => motionQuery.matches;
@@ -72,6 +77,14 @@ async function boot() {
   // ------------------------------------------------------------ scene
   let scene = null;
   let ball = null;
+  let lightGuide = null;
+  let manualReplayToken = 0;
+  let manualReplayPending = false;
+  // Sticky: real input/feedback cancels an in-flight optional guide import.
+  let lightGuideCancelled = false;
+  // Pre-load holds/launches must not consume the intro or write the seen flag.
+  // Stand-down is armed only when the visible scene is ready and start is attempted.
+  let lightGuideCancellable = false;
   let rendererMode = 'png';
   const webgl = supportsWebGL2();
   if (webgl) {
@@ -97,13 +110,37 @@ async function boot() {
     goalEl.style.setProperty('--goal-w', `${g.width.toFixed(2)}px`);
     goalEl.style.setProperty('--goal-h', `${g.height.toFixed(2)}px`);
     goalEl.style.setProperty('--bar-w', `${g.barPx.toFixed(2)}px`);
+    // Place the only xG display in the white gap above the pitch, not the top
+    // icon row. Set geometry on the readout itself, never on a sibling.
+    const board = scoreboardEl;
+    if (board) {
+      const width = window.innerWidth || host.clientWidth;
+      const height = window.innerHeight || host.clientHeight;
+      const boardWidth = 0.92 * Math.min(260, Math.max(176, g.width * 0.55), Math.max(128, width - 144));
+      const boardHeight = boardWidth * 224 / 640;
+      const centerX = Math.max(boardWidth / 2 + 72, Math.min(width - boardWidth / 2 - 72, g.left + g.width / 2));
+      const centerY = Math.max(boardHeight / 2 + 8, Math.min(height * 0.305, g.top - boardHeight / 2 - 12 - height * 0.017));
+      board.style.setProperty('--scoreboard-width', `${boardWidth.toFixed(2)}px`);
+      board.style.setProperty('--scoreboard-left', `${centerX.toFixed(2)}px`);
+      board.style.setProperty('--scoreboard-top', `${centerY.toFixed(2)}px`);
+    }
     viewMetres = g.pxPerMetre;
+    updateFormFactor();
     return g;
+  }
+
+  /** Same portrait test as camera.js (aspect < 1). Desktop composition is unchanged. */
+  function updateFormFactor() {
+    const box = host.getBoundingClientRect();
+    const w = box.width || host.clientWidth || window.innerWidth || 1;
+    const h = box.height || host.clientHeight || window.innerHeight || 1;
+    play.dataset.form = isPhoneViewport(w, h) ? 'phone' : 'desktop';
   }
 
   function layoutGoal() {
     syncGoalLayout();
     placeFallback();
+    simXg?.tick();
   }
   let viewMetres = 120; // CSS px per metre at the ball plane
 
@@ -131,7 +168,18 @@ async function boot() {
     navTarget = null;
   }
 
+  function standDownLightGuide() {
+    if (!lightGuideCancellable) return;
+    lightGuideCancelled = true;
+    manualReplayToken += 1;
+    manualReplayPending = false;
+    replayControl.pending = false;
+    lightGuide?.interrupt();
+    syncReplayButton();
+  }
+
   function clearLights() {
+    standDownLightGuide();
     cancelNavigation();
     shotOpening = -1;
     followOpening = -1;
@@ -161,6 +209,8 @@ async function boot() {
     navTimer = window.setTimeout(() => {
       navTimer = 0;
       if (!navigationEnabled) return;
+      replayControl.navigating = true;
+      syncReplayButton();
       window.location.assign(navTarget);
     }, GOAL_HOLD_MS);
   }
@@ -214,10 +264,13 @@ async function boot() {
 
   function setPhase(phase) {
     play.dataset.state = phase;
+    syncReplayButton();
   }
 
   /** Physics → visible state. Only real events light anything. */
   function onPhysics(ev) {
+    // Stand down BEFORE real light feedback and any downstream estimator tick.
+    if (ev.type === 'goal' || ev.type === 'bar') standDownLightGuide();
     events.push({ t: Math.round(world.time * 1000) / 1000, ...ev });
     if (events.length > 200) events.shift();
     if (ev.type === 'goal') {
@@ -259,7 +312,15 @@ async function boot() {
       }
     } else if (ev.type === 'reset') {
       clearLights();
+      // The existing explicit R/reset already reset physics. Refresh the view
+      // immediately instead of retaining a pre-reset/offscreen snapshot.
+      prev = cur = world.state();
+      alpha = 1;
+      acc = 0;
+      last = 0;
       setPhase('idle');
+      present();
+      schedule();
       say('Ball reset.');
     }
     interaction?.onPhysicsEvent(ev);
@@ -341,6 +402,10 @@ async function boot() {
   }
 
   let interaction = null;
+  let simXg = null;
+  // interaction.mount() emits one synthetic onHold to position the ball. That
+  // is NOT user input and must not permanently cancel the first-visit guide.
+  let interactionMounted = false;
   const view = () => (scene ? scene.view : { pxPerMetre: viewMetres, width: host.clientWidth, height: host.clientHeight });
 
   interaction = createInteraction({
@@ -354,6 +419,7 @@ async function boot() {
     unprojectFloor: scene ? (x, y) => scene.unprojectFloor(x, y) : null,
     reduceMotion,
     onHold: () => {
+      if (interactionMounted) standDownLightGuide();
       onWorldHeld();
       scene?.invalidate();
     },
@@ -365,6 +431,7 @@ async function boot() {
       acc = 0;
       setPhase('flying');
       schedule();
+      simXg?.tick();
     },
     onReset: onPhysics,
     onCancel: () => {
@@ -373,6 +440,11 @@ async function boot() {
     status: say,
     rest: RESTING,
   });
+
+  // Phone-only simulated goal probability. Created after interaction so it
+  // can read phase/aim/charge, but it does no work until the ball is ready
+  // and the player is aiming. It never steps the playable Rapier world.
+  simXg = createSimXgClient({ play, host, world, interaction });
 
   // ---------------------------------------------------------- rendering
   if (scene) {
@@ -390,6 +462,7 @@ async function boot() {
     scene.draw();
     syncGoalLayout();
     interaction?.syncHandle();
+    simXg?.tick();
     return world.awake; // loop only while the simulation is live
   }
   function kickRender() {
@@ -413,12 +486,100 @@ async function boot() {
       scene.invalidate();
     }
     interaction?.syncHandle();
+    simXg?.tick();
   }
 
+  /**
+   * Arm the optional first-visit light guide only after the playable scene
+   * (room and ball) has been drawn. The module is loaded with a dynamic
+   * import so it adds no request to first paint, and it does no work for a
+   * visitor who already watched it. The scene must expose setGuide();
+   * without it the guide is skipped entirely. Skipped or pre-load-cancelled
+   * starts do not write the watched flag.
+   */
+  async function startLightGuide() {
+    if (!scene?.setGuide) return;
+    // Scene is on screen: later real input may interrupt. Input that happened
+    // only while assets were still loading did not set lightGuideCancelled.
+    lightGuideCancellable = true;
+    const phase = interaction?.phase;
+    if (lightGuideCancelled || (phase && phase !== 'idle')) return;
+    try {
+      const mod = await import('./goal-light-guide.js?v=2026.11.23-r10');
+      // A real hold/goal/bar/reset can land during the import. At this point
+      // there is still no controller, so the sticky flag is the priority
+      // guard: do not create or start anything over live feedback.
+      const phaseAfter = interaction?.phase;
+      if (lightGuideCancelled || (phaseAfter && phaseAfter !== 'idle')) return;
+      lightGuide = await mod.startGoalLightGuideWhenReady({
+        load: async () => mod,
+        isCancelled: () => lightGuideCancelled,
+        ...guidePresentation(),
+      });
+    } catch (error) {
+      errors.push(`guide: ${error?.message ?? error}`);
+    }
+  }
+
+  function guidePresentation() {
+    return {
+      setLights: (state, level) => scene?.setGuide?.(state, level),
+      reduceMotion,
+      onStart: () => simXg?.beginGuideMessage?.('Pull ball to kick', reduceMotion()),
+      onFrame: (elapsed) => simXg?.updateGuideMessage?.(elapsed),
+      onFinish: () => simXg?.endGuideMessage?.(),
+    };
+  }
+
+  function replaySceneReady() {
+    return Boolean(scene?.setGuide && play.dataset.room === 'glb'
+      && play.dataset.ball === 'ready' && scene.mode === 'glb');
+  }
+
+  function syncReplayButton() {
+    if (!replayButton) return;
+    replayButton.disabled = replayControl.navigating;
+    replayButton.title = replayControl.navigating ? 'Leaving the homepage'
+      : (play.dataset.room === 'failed' || play.dataset.ball === 'error') ? 'Replay queued: the textured scene is unavailable'
+        : replayControl.pending && !replaySceneReady() ? 'Replay queued until the textured scene is ready'
+          : 'Replay the goal-frame light show';
+  }
+
+  async function replayLightGuide() {
+    if (replayControl.navigating || !replayControl.pending) return;
+    if (!replaySceneReady()) { syncReplayButton(); return; }
+    lightGuideCancellable = true;
+    lightGuideCancelled = true;
+    const token = ++manualReplayToken;
+    const serial = replayControl.serial;
+    lightGuide?.interrupt();
+    manualReplayPending = true;
+    syncReplayButton();
+    try {
+      const mod = await import('./goal-light-guide.js?v=2026.11.23-r10');
+      if (token !== manualReplayToken || serial !== replayControl.serial || replayControl.navigating) return;
+      if (!replaySceneReady()) return;
+      replayControl.pending = false;
+      lightGuide = mod.createGoalLightGuide({ manual: true, ...guidePresentation() });
+      lightGuide.start();
+    } catch (error) {
+      errors.push(`guide replay: ${error?.message ?? error}`);
+      say('The light show is unavailable.');
+    } finally {
+      if (token === manualReplayToken) manualReplayPending = false;
+      syncReplayButton();
+    }
+  }
+
+  replayControl.run = () => { void replayLightGuide(); };
+  if (replayControl.pending) void replayLightGuide();
+
   interaction.mount();
+  interactionMounted = true;
   layoutGoal();
   scene?.onLayout(() => {
     layoutGoal();
+    syncReplayButton();
     present();
   });
   window.addEventListener('resize', layoutGoal);
@@ -533,6 +694,32 @@ async function boot() {
     reset: () => interaction.reset(),
   };
   window.__prototype = api;
+  window.__simXg = () => simXg?.inspect?.() ?? null;
+  function attachSimXg() {
+    if (simXg?.isDisposed?.()) simXg = null;
+    if (!simXg) simXg = createSimXgClient({ play, host, world, interaction });
+    return simXg;
+  }
+  window.addEventListener('pagehide', (event) => {
+    replayControl.navigating = true;
+    lightGuide?.interrupt();
+    syncReplayButton();
+    if (event.persisted) {
+      simXg?.suspend?.();
+      return;
+    }
+    simXg?.dispose?.();
+  });
+  window.addEventListener('pageshow', (event) => {
+    replayControl.navigating = false;
+    syncReplayButton();
+    if (event.persisted || simXg?.isDisposed?.()) {
+      attachSimXg();
+      simXg?.resume?.();
+      simXg?.tick();
+    }
+  });
+
   play.dataset.renderer = rendererMode;
   play.dataset.mode = scene ? 'loading' : 'error';
   play.dataset.ball = 'loading';
@@ -548,7 +735,7 @@ async function boot() {
     // Compose the real room before starting the (possibly 4K) ball download.
     // The homepage paints immediately; the ball never blocks the room.
     scene.draw();
-    await afterFirstPaint();
+    syncReplayButton();
   } catch (error) {
     errors.push(`room: ${error?.message ?? error}`);
     play.dataset.room = 'failed';
@@ -558,22 +745,44 @@ async function boot() {
     await scene.loadModel();
     play.dataset.mode = 'glb';
     play.dataset.ball = 'ready';
+    syncReplayButton();
+    simXg?.tick();
     play.dataset.textureTier = globalThis.__textureInfra?.tier ?? play.dataset.textureTier ?? '';
+    // Re-bind only the view to the current real state after async publication.
+    // A cosmetic replay never changes or resets the Rapier body.
+    prev = cur = world.state();
+    alpha = 1;
+    ball?.sync(cur, cur, 1, H);
     // Textures are decoded/uploaded and the shader is compiled inside
     // loadModel(); draw the complete textured frame immediately instead of
     // waiting for a rAF that may never run while the physics is at rest.
     scene.draw();
     scene.invalidate();
+    // Early clicks remain pending through decoding/compilation; latest click wins.
+    if (replayControl.pending) void replayLightGuide();
   } catch (error) {
     errors.push(`ball: ${error?.message ?? error}`);
     play.dataset.mode = 'error';
     play.dataset.ball = 'error';
+    syncReplayButton();
+    simXg?.tick();
     console.error('[ball] not shown: textured Blender GLB failed', error);
+  }
+
+  // Intro starts only once the visible scene has painted. It is unawaited
+  // so football-ready is not blocked. Pre-load input did not consume it.
+  if (play.dataset.room === 'glb') {
+    await afterFirstPaint();
+    void startLightGuide();
   }
   window.dispatchEvent(new Event('football-ready'));
 }
 
 boot().catch((error) => {
+  const xgValue = play?.querySelector('[data-sim-xg-value]');
+  const xgSr = play?.querySelector('[data-sim-xg-sr]');
+  if (xgValue) { delete xgValue.dataset.value; renderScoreboardGlyphs(xgValue, '--'); }
+  if (xgSr) xgSr.textContent = 'Simulated goal probability is unavailable because game initialization failed.';
   console.warn('[football] startup failed', error);
   if (!play) return;
   play.dataset.state = 'idle';

@@ -31,7 +31,7 @@ import {
   RESTING,
   ROOM,
   openingRect,
-} from './config.js';
+} from './config.js?v=2026.11.23-r10';
 
 export { BALL_RADIUS, GOAL, GOAL_WIDTH, GOAL_HEIGHT, OPENING, BAR, CELLS_X, CELLS_Y, ROOM, RESTING, openingRect };
 export const G = 9.81;

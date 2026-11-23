@@ -19,9 +19,9 @@
  * painted as a 2D fill. The DOM goal is a measuring/accessibility layer only.
  */
 
-import * as THREE from './three.js';
+import * as THREE from './three.js?v=2026.11.23-r10';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
-import { loadFootball } from './ball-view.js';
+import { loadFootball } from './ball-view.js?v=2026.11.23-r10';
 import {
   BALL_RADIUS,
   BAR,
@@ -36,9 +36,9 @@ import {
   OPENING,
   RESTING,
   ROOM,
-} from './config.js';
-import { framingFor, projectPoint, projectSphereExtent, unprojectToFloor, unprojectToPlane } from './camera.js';
-import { DPR_CAP, applyTextureSampling, loadGlb, resolveAsset } from './texture-infra.js';
+} from './config.js?v=2026.11.23-r10';
+import { framingFor, projectPoint, projectSphereExtent, unprojectToFloor, unprojectToPlane } from './camera.js?v=2026.11.23-r10';
+import { DPR_CAP, applyTextureSampling, loadGlb, resolveAsset } from './texture-infra.js?v=2026.11.23-r10';
 
 export function supportsWebGL2() {
   try {
@@ -326,20 +326,36 @@ export function createScene({ canvas, host }) {
   let roomRoot = null;
   let goalGroup = null;
   let roomMode = 'loading';
+  // The first-visit guide is an additive overlay on the same diffuser
+  // materials. It is never a snapshot of real feedback: clearing it just
+  // re-applies the live per-cell `light` state in applyLights().
+  let guide = null; // { state: 'green' | 'red', level: 0..1 } | null
+  const LIGHT_INTENSITY = 2.4;
+  const GUIDE_INTENSITY = 1.15;
 
   function applyLights() {
     if (!stripMaterials) return;
+    // Real feedback always gets its authored full strength back, so an
+    // interrupted guide can never leave the bars dimmed.
+    stripMaterials.green.emissiveIntensity = LIGHT_INTENSITY;
+    stripMaterials.red.emissiveIntensity = LIGHT_INTENSITY;
     for (const mesh of stripMeshes) mesh.material = stripMaterials.off;
-    if (!light) return;
-    const cell = cellStrips[light.cell];
-    if (!cell) return;
-    const material = light.state === 'green' ? stripMaterials.green : stripMaterials.red;
-    const edges = light.state === 'green'
-      ? ['top', 'bottom', 'left', 'right']
-      : (light.edge ? [light.edge] : ['top', 'bottom', 'left', 'right']);
-    for (const edge of edges) {
-      if (cell[edge]) cell[edge].material = material;
+    if (light) {
+      const cell = cellStrips[light.cell];
+      if (cell) {
+        const material = light.state === 'green' ? stripMaterials.green : stripMaterials.red;
+        const edges = light.state === 'green'
+          ? ['top', 'bottom', 'left', 'right']
+          : (light.edge ? [light.edge] : ['top', 'bottom', 'left', 'right']);
+        for (const edge of edges) {
+          if (cell[edge]) cell[edge].material = material;
+        }
+      }
     }
+    if (!guide) return;
+    const material = guide.state === 'green' ? stripMaterials.green : stripMaterials.red;
+    material.emissiveIntensity = GUIDE_INTENSITY * guide.level;
+    for (const mesh of stripMeshes) mesh.material = material;
   }
 
   /**
@@ -351,6 +367,22 @@ export function createScene({ canvas, host }) {
   function setLights(cell, state, edge = null) {
     const valid = cell >= 0 && state !== null && (state === 'green' || state === 'red') && cellStrips[cell];
     light = valid ? { cell, state, edge: edge ?? null } : null;
+    applyLights();
+    invalidate();
+  }
+
+  /**
+   * First-visit guide overlay across every real diffuser bar:
+   *   setGuide('green', 0.6)  -> gentle ramp on the existing green material
+   *   setGuide(null, 0)       -> clear, then re-apply the live `light` state
+   * The overlay owns no snapshot of player feedback; `applyLights()` always
+   * paints the current real state underneath it.
+   */
+  function setGuide(state, level = 0) {
+    if (!stripMaterials) return;
+    const value = Number(level);
+    const valid = (state === 'green' || state === 'red') && value > 0;
+    guide = valid ? { state, level: Math.min(1, value) } : null;
     applyLights();
     invalidate();
   }
@@ -433,13 +465,13 @@ export function createScene({ canvas, host }) {
     green.name = 'goal-light-green';
     green.color.setHex(0x041408);
     if (green.emissive) green.emissive.setHex(0x22ff66);
-    if ('emissiveIntensity' in green) green.emissiveIntensity = 2.4;
+    if ('emissiveIntensity' in green) green.emissiveIntensity = LIGHT_INTENSITY;
     green.toneMapped = false;
     const red = off.clone();
     red.name = 'goal-light-red';
     red.color.setHex(0x140402);
     if (red.emissive) red.emissive.setHex(0xff2a1e);
-    if ('emissiveIntensity' in red) red.emissiveIntensity = 2.4;
+    if ('emissiveIntensity' in red) red.emissiveIntensity = LIGHT_INTENSITY;
     red.toneMapped = false;
     stripMaterials = { off, green, red };
     for (const mesh of stripMeshes) mesh.material = off;
@@ -507,8 +539,12 @@ export function createScene({ canvas, host }) {
   /** The interpolated ball transform the renderer must show. */
   const pose = { pos: new THREE.Vector3(RESTING.x, RESTING.y, RESTING.z), quat: new THREE.Quaternion() };
   function setPose(p, q) {
+    // Never replace the last valid rendered pose with a partial/non-finite state.
+    if (!p || !q || ![p.x, p.y, p.z, q.x, q.y, q.z, q.w].every(Number.isFinite)) return false;
+    if (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w < 1e-12) return false;
     pose.pos.set(p.x, p.y, p.z);
     pose.quat.copy(q);
+    return true;
   }
   /**
    * The camera is the room's window: it is fixed on the near face and never
@@ -528,20 +564,26 @@ export function createScene({ canvas, host }) {
     applyBallFraming(ballShiftPx);
     view.ballShiftPx = ballShiftPx;
 
-    // Layer 1: room + goal + full depth buffer.
-    ballGroup.visible = false;
-    renderer.autoClear = true;
-    renderer.render(scene, camera);
-    // Layer 2: the same 3D ball, same z depth, shifted only in screen space.
-    // Room geometry is hidden but its depth buffer still occludes a ball that
-    // is behind a bar. No second pose and no scale change.
-    ballGroup.visible = true;
+    // Visibility belongs to the validated loader, not a cosmetic guide draw.
+    // Render-pass overrides are strictly temporary, including on render errors.
+    const ballVisible = ballGroup.visible;
     const roomVisible = roomRoot?.visible ?? false;
-    if (roomRoot) roomRoot.visible = false;
-    renderer.autoClear = false;
-    renderer.render(scene, ballCamera);
-    renderer.autoClear = true;
-    if (roomRoot) roomRoot.visible = roomVisible;
+    const autoClear = renderer.autoClear;
+    try {
+      ballGroup.visible = false;
+      renderer.autoClear = true;
+      renderer.render(scene, camera);
+      if (mode === 'glb' && model && ballVisible) {
+        ballGroup.visible = true;
+        if (roomRoot) roomRoot.visible = false;
+        renderer.autoClear = false;
+        renderer.render(scene, ballCamera);
+      }
+    } finally {
+      ballGroup.visible = ballVisible;
+      if (roomRoot) roomRoot.visible = roomVisible;
+      renderer.autoClear = autoClear;
+    }
   }
 
   /** Paint one authoritative frame: fixed camera, current crop, real state. */
@@ -657,6 +699,7 @@ export function createScene({ canvas, host }) {
     },
     faces: stripMeshes,
     setLights,
+    setGuide,
     loadRoom,
     get roomMode() {
       return roomMode;

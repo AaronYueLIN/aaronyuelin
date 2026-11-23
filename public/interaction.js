@@ -26,7 +26,7 @@ import {
   GOAL_WIDTH,
   SHOT,
   RESTING,
-} from './config.js';
+} from './config.js?v=2026.11.23-r10';
 import {
   chargeForElapsed,
   defaultAimPoint,
@@ -34,7 +34,7 @@ import {
   moveAim,
   aimFromGoalRect,
   releaseRatioFromSamples,
-} from './shot.js';
+} from './shot.js?v=2026.11.23-r10';
 
 const MIN_AIM_PX = SHOT.aimDeadzonePx;
 const DRAG_START_PX = 4;

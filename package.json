@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": false,
   "license": "MIT",
-  "description": "Core architecture of aaronyuelin.com: a Three.js room, Rapier football physics, custom camera framing and shaders. Textures and models are not included.",
+  "description": "aaronyuelin.com: a Three.js room, Rapier football physics, custom camera framing and shaders, plus the live models and textures. Source code is MIT (YUE LIN); models, textures, and third-party fonts/libraries keep their own terms.",
   "type": "module",
   "engines": {
     "node": ">=20"

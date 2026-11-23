@@ -16,7 +16,8 @@
  *     first room frame.
  */
 
-import * as THREE from './three.js';
+import * as THREE from './three.js?v=2026.11.23-r10';
+import { fetchTransport, legacyTransport } from './glb-transport.js?v=2026.11.23-r10';
 
 export const DPR_CAP = 2;
 const MANIFEST_ID = 'texture-manifest';
@@ -202,7 +203,9 @@ export async function loadGlb(loader, url, {
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     try {
-      buffer = await fetchBuffer(url, { label, timeoutMs, priority, onProgress: progress });
+      const key = String(url).split(/[?#]/)[0].split('/').pop();
+      const transport = readManifest()?.transport?.[key] ?? legacyTransport(url);
+      buffer = await fetchTransport(url, transport, fetchBuffer, { label, timeoutMs, priority, onProgress: progress });
       break;
     } catch (error) {
       lastError = error;
@@ -222,6 +225,7 @@ export async function loadGlb(loader, url, {
     throw lastError;
   }
 
+  const fetchedAt = performance.now();
   let gltf;
   try {
     // `url` may be a root-relative path; resolve it against the document
@@ -243,6 +247,8 @@ export async function loadGlb(loader, url, {
     url,
     bytes: buffer.byteLength,
     ms: Math.round(performance.now() - started),
+    fetchMs: Math.round(fetchedAt - started),
+    parseMs: Math.round(performance.now() - fetchedAt),
     attempt: Math.min(retries + 1, state.loads.filter((entry) => entry.label === label).length + 1),
   };
   state.loads.push(load);

@@ -15,7 +15,7 @@
  * the browser runs.
  */
 
-import { GOAL_HEIGHT, GOAL_WIDTH, SHOT, openingRect } from './config.js';
+import { GOAL_HEIGHT, GOAL_WIDTH, SHOT, openingRect } from './config.js?v=2026.11.23-r10';
 
 export function clamp(value, lo, hi) {
   return value < lo ? lo : value > hi ? hi : value;

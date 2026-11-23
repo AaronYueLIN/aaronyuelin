@@ -19,10 +19,10 @@
  * UV atlas, tangents). Do not add a degraded fallback here.
  */
 
-import * as THREE from './three.js';
+import * as THREE from './three.js?v=2026.11.23-r10';
 import { GLTFLoader } from './vendor/GLTFLoader.js';
-import { BALL_RADIUS, BAR_DEPTH } from './config.js';
-import { applyTextureSampling, loadGlb, resolveAsset } from './texture-infra.js';
+import { BALL_RADIUS, BAR_DEPTH } from './config.js?v=2026.11.23-r10';
+import { applyTextureSampling, loadGlb, resolveAsset } from './texture-infra.js?v=2026.11.23-r10';
 
 export const BALL_GLB_URL = new URL('assets/glb/football.4k.b022e4b93a8701be.glb', import.meta.url);
 
